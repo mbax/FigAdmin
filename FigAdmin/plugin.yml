@@ -1,0 +1,39 @@
+name: FigAdmin
+main: com.btbb.figadmin.FigAdmin
+version: 4.0.0
+website: http://www.bobtheblueberry.com
+author: Serge Humphrey
+description: >
+             Admin plugin for Bukkit, adds important functions like kicking and banning.
+commands:
+  kick:
+    description: Kick a player
+    usage: /<command> player [reason] - Kick a player
+  tempban:
+    description: Temporarily ban a player
+    usage: /<command> player time timeform [reason] - Temporarily ban a player
+  ban:
+    description: Ban a player
+    usage: /<command> player [reason] - Ban a player
+  unban:
+    description: Unban a player
+    usage: /<command> player - Unban a player
+  checkban:
+    description: Check if a player is banned
+    usage: /<command>
+  reloadka:
+    description: Reload the banlist
+    usage: /<command>
+  ipban:
+    description: IP-ban a player
+    usage: /<command> player [reason]
+  exportbans:
+    description: Export bans to banned-players.txt
+    usage: /<command>
+  warn:
+    description: Warn a player
+    usage: /<command> player [reason] - Warn a player
+  editban:
+    description: Edit a ban
+    usage: /<command> <list/search/load/id/save/show/reason/time/delete/cancel>
+    aliases: [eb,eban]
