@@ -188,8 +188,8 @@ public class FigAdmin extends JavaPlugin {
         String[] trimmedArgs = args;
 
         // sender.sendMessage(ChatColor.GREEN + trimmedArgs[0]);
-        if (commandName.equals("reloadka")) {
-            return reloadKA(sender);
+        if (commandName.equals("reloadfig")) {
+            return reloadFig(sender);
         }
         if (commandName.equals("unban")) {
             return unBanPlayer(sender, trimmedArgs);
@@ -301,7 +301,7 @@ public class FigAdmin extends JavaPlugin {
 
         String p = args[0].toLowerCase();
         // Reason stuff
-        String reason = "Global Kick";
+        String reason = (p.equals("*")) ?"Global Kick" : "undefined";
         boolean broadcast = true;
 
         if (args.length > 1) {
@@ -622,7 +622,7 @@ public class FigAdmin extends JavaPlugin {
         return true;
     }
 
-    private boolean reloadKA(CommandSender sender) {
+    private boolean reloadFig(CommandSender sender) {
         boolean auth = false;
         Player player = null;
         String kicker = "server";

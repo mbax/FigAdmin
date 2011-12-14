@@ -21,7 +21,7 @@ commands:
   checkban:
     description: Check if a player is banned
     usage: /<command>
-  reloadka:
+  reloadfig:
     description: Reload the banlist
     usage: /<command>
   ipban:

@@ -133,10 +133,6 @@ public class MySQLDatabase extends Database {
         PreparedStatement ps = null;
         try {
             conn = getSQLConnection();
-            PreparedStatement getID = conn.prepareStatement("SELECT LAST_INSERT_ID()");
-            ResultSet rsID = getID.executeQuery();
-            rsID.next();
-            e.id = rsID.getInt(0);
             ps = conn.prepareStatement("INSERT INTO " + mysqlTable
                     + " (name,reason,admin,temptime,type,time) VALUES(?,?,?,?,?,?)");
             ps.setString(1, e.name);
@@ -149,6 +145,11 @@ public class MySQLDatabase extends Database {
             ps.setInt(5, e.type);
             ps.setLong(6, System.currentTimeMillis() / 1000);
             ps.executeUpdate();
+            // Update banedit ID
+            PreparedStatement getID = conn.prepareStatement("SELECT LAST_INSERT_ID()");
+            ResultSet rsID = getID.executeQuery();
+            rsID.next();
+            e.id = rsID.getInt(1);
         } catch (SQLException ex) {
             FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ", ex);
         } finally {
