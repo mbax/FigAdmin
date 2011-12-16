@@ -82,19 +82,16 @@ public class FigAdminPlayerListener extends PlayerListener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String ip = player.getAddress().getAddress().getHostAddress();
-        System.out.println("connect from ip " + ip);
         for (int i = 0; i < plugin.bannedPlayers.size(); i++) {
             EditBan e = plugin.bannedPlayers.get(i);
             if (e.IP != null && e.IP.equals(ip)) {
                 // Player is banned.
-                System.out.println("ip is banned");
                 event.setJoinMessage("You are ban");
                 String kickerMsg = plugin.formatMessage(plugin.getConfig().getString(
                         "messages.LoginIPBan"));
                 player.kickPlayer(kickerMsg);
 
                 if (!e.name.equals(player.getName().toLowerCase())) {
-                    System.out.println("Updating name");
                     plugin.db.updateAddress(player.getName(), ip);
                 }
                 return;

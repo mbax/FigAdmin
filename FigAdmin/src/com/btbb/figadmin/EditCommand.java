@@ -103,7 +103,7 @@ public class EditCommand implements CommandExecutor {
                 return cancel(sender, args);
             }
 
-            if (args[0].equalsIgnoreCase("show") || args[9].equalsIgnoreCase("view")) {
+            if (args[0].equalsIgnoreCase("show") || args[0].equalsIgnoreCase("view")) {
                 return view(sender, args);
             }
             if (args[0].equalsIgnoreCase("reason")) {

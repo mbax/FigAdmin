@@ -370,7 +370,6 @@ public class MySQLDatabase extends Database {
                 while (rs.next()) {
                     EditBan e = getEditBan(rs);
                     list.add(e);
-                    System.out.println("§4"+e);
                 }
             } catch (SQLException ex) {
                 FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ",
