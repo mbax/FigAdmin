@@ -77,8 +77,8 @@ public class FlatFileDatabase extends Database {
                 boolean match = false;
                 if (!line.startsWith("#")) {
                     String[] data = line.split("\\|");
-                    if (data.length > 0) {
-                        match = data[0].equals(player);
+                    if (data.length > 1) {
+                        match = data[0].equals(player) && Integer.parseInt(data[1]) != 2;
                     }
                 }
                 if (!match) {
@@ -135,7 +135,7 @@ public class FlatFileDatabase extends Database {
                 if (!data.startsWith("#")) {
                     if (data.length() > 0) {
                         EditBan e = EditBan.loadBan(data);
-                        if (e != null) {
+                        if (e != null && e.type != 2) {
                             list.add(e);
                             id = Math.max(e.id, id);
                         }

@@ -35,7 +35,6 @@ public class FigAdmin extends JavaPlugin {
     Permissions CurrentPermissions = null;
     Database db;
     String maindir = "plugins/FigAdmin/";
-    File Settings = new File(maindir + "config.properties");
     ArrayList<EditBan> bannedPlayers;
     private final FigAdminPlayerListener playerListener = new FigAdminPlayerListener(this);
 
@@ -109,7 +108,8 @@ public class FigAdmin extends JavaPlugin {
         pm.registerEvent(Event.Type.PLAYER_LOGIN, playerListener, Priority.Highest, this);
         pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Monitor, this);
 
-        getCommand("editban").setExecutor(editor = new EditCommand(this));
+        editor = new EditCommand(this);
+        getCommand("editban").setExecutor(editor);
 
         PluginDescriptionFile pdfFile = this.getDescription();
         log.log(Level.INFO, pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!");
@@ -301,7 +301,7 @@ public class FigAdmin extends JavaPlugin {
 
         String p = args[0].toLowerCase();
         // Reason stuff
-        String reason = (p.equals("*")) ?"Global Kick" : "undefined";
+        String reason;
         boolean broadcast = true;
 
         if (args.length > 1) {
@@ -310,6 +310,12 @@ public class FigAdmin extends JavaPlugin {
             	reason = combineSplit(2, args, " ");
             }else*/
             reason = combineSplit(1, args, " ");
+        } else {
+            if (p.equals("*")) {
+                reason = getConfig().getString("kickGlobalDefaultReason", "Global Kick");
+            } else {
+                reason = getConfig().getString("kickDefaultReason", "Boot has spoken!");
+            }
         }
 
         if (p.equals("*")) {
@@ -483,7 +489,7 @@ public class FigAdmin extends JavaPlugin {
         Player victim = this.getServer().getPlayer(p); // What player is really
                                                        // the victim?
         // Reason stuff
-        String reason = "Ban Hammer has Spoken!";
+        String reason;
         boolean broadcast = true;
 
         if (args.length > 3) {
@@ -492,10 +498,12 @@ public class FigAdmin extends JavaPlugin {
             	reason = combineSplit(2, args, " ");
             }else*/
             reason = combineSplit(3, args, " ");
+        } else {
+            reason = getConfig().getString("banDefaultReason", "Ban hammer has spoken!");
         }
 
         if (isBanned(p)) {
-            String kickerMsg = getConfig().getString("messages.banMsgFailed");
+            String kickerMsg = getConfig().getString("messages.banMsgFailed", "Ban failed");
             kickerMsg = kickerMsg.replaceAll("%victim%", p);
             sender.sendMessage(formatMessage(kickerMsg));
             return true;
@@ -537,18 +545,29 @@ public class FigAdmin extends JavaPlugin {
 
     private boolean checkBan(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("Please specify a player");
-            return true;
+            return false;
         }
+        boolean auth = false;
+        if (sender instanceof Player) {
+            Player p = (Player) sender;
+            if (Permissions.Security.permission(p, "figadmin.checkban")) {
+                auth = true;
+            }
+        } else {
+            auth = true;
+        }
+        // Has permission?
+        if (!auth)
+            return true;
         String p = args[0];
         if (!validName(p)) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.badPlayerName", "bad player name")));
             return true;
         }
         if (isBanned(p))
-            sender.sendMessage(ChatColor.RED + "Player " + p + " is banned.");
+            sender.sendMessage(formatMessage(getConfig().getString("messages.playerBanned","player banned").replaceAll("%player%", p)));
         else
-            sender.sendMessage(ChatColor.GREEN + "Player " + p + " is not banned.");
+            sender.sendMessage(formatMessage(getConfig().getString("messages.playerNotBanned","player not banned").replaceAll("%player%", p)));
         return true;
     }
 
@@ -588,7 +607,7 @@ public class FigAdmin extends JavaPlugin {
             return true;
         }
         // Reason stuff
-        String reason = "undefined";
+        String reason;
         boolean broadcast = true;
 
         if (args.length > 1) {
@@ -597,6 +616,9 @@ public class FigAdmin extends JavaPlugin {
             	reason = combineSplit(2, args, " ");
             }else*/
             reason = combineSplit(1, args, " ");
+        } else {
+            // You must specify a reason
+            return true;
         }
 
         // Add player to database
@@ -608,13 +630,16 @@ public class FigAdmin extends JavaPlugin {
 
         // Send message to all players
         if (broadcast) {
-            this.getServer().broadcastMessage(
-                    ChatColor.RED + "Player " + p + " recieved a warning from " + kicker + ":");
+            this.getServer().broadcastMessage(formatMessage(
+                    getConfig().getString("messages.warnMsgBroadcast", "warning from %player% by %kicker%")
+                    .replaceAll("%player%", p).replaceAll("%kicker%", kicker)));
             this.getServer().broadcastMessage(ChatColor.GRAY + "  " + reason);
         } else {
             if (victim != null) { // If he is online, kick him with a nice
                                   // message :)
-                victim.sendMessage(ChatColor.RED + "You have recieved a warning from " + kicker + ":");
+                victim.sendMessage(formatMessage(
+                        getConfig().getString("messages.warnMsgVictim", "warning from %player%")
+                        .replaceAll("%kicker%", kicker)));
                 victim.sendMessage(ChatColor.GRAY + "  " + reason);
             }
         }
@@ -625,25 +650,24 @@ public class FigAdmin extends JavaPlugin {
     private boolean reloadFig(CommandSender sender) {
         boolean auth = false;
         Player player = null;
-        String kicker = "server";
+        String p = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
             if (Permissions.Security.permission(player, "figadmin.reload"))
                 auth = true;
-            kicker = player.getName();
+            p = player.getName();
         } else {
             auth = true;
         }
-        if (auth) {
-
-            bannedPlayers = db.getBannedPlayers();
-            editor.ban = null;
-            
-            log.log(Level.INFO, "[FigAdmin] " + kicker + " Reloaded player banlist.");
-            sender.sendMessage("§2Reloaded banlist.");
-            return true;
+        if (!auth) {
+            return false;
         }
-        return false;
+        super.reloadConfig();
+        onEnable();
+        
+        log.log(Level.INFO, "[FigAdmin] " + p + " Reloaded FigAdmin.");
+        sender.sendMessage(formatMessage(getConfig().getString("messages.reloadMsg", "reloaded")));
+        return true;
     }
 
     private boolean exportBans(CommandSender sender) {
@@ -667,7 +691,7 @@ public class FigAdmin extends JavaPlugin {
             } catch (IOException e) {
                 FigAdmin.log.log(Level.SEVERE, "FigAdmin: Couldn't write to banned-players.txt");
             }
-            sender.sendMessage("§2Exported banlist to banned-players.txt.");
+            sender.sendMessage(formatMessage(getConfig().getString("messages.exportMsg","expored")));
             return true;
         }
         return false;
@@ -678,7 +702,15 @@ public class FigAdmin extends JavaPlugin {
         for (int i = 0; i < bannedPlayers.size(); i++) {
             EditBan e = bannedPlayers.get(i);
             if (e.name.equals(name)) {
-                return true;
+                if (e.endTime  < 1) {
+                    return true;
+                } else if (e.endTime > (System.currentTimeMillis()/1000) ) {
+                    // Time is up =D
+                    return false;
+                } else {
+                    // They are still banned XD
+                    return true;
+                }
             }
         }
         return false;
