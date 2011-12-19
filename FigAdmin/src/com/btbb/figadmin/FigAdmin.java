@@ -43,9 +43,9 @@ public class FigAdmin extends JavaPlugin {
     public boolean autoComplete;
     private EditCommand editor;
 
-    private Boolean setupPermissions()
-    {
-        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+    private Boolean setupPermissions() {
+        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(
+                net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
         }
@@ -206,7 +206,7 @@ public class FigAdmin extends JavaPlugin {
             return checkBan(sender, trimmedArgs);
         }
         if (commandName.equals("ipban")) {
-            return banPlayer(sender, trimmedArgs, true);
+            return ipBan(sender, trimmedArgs);
         }
         if (commandName.equals("exportbans")) {
             return exportBans(sender);
@@ -245,6 +245,10 @@ public class FigAdmin extends JavaPlugin {
         for (int i = 0; i < bannedPlayers.size(); i++) {
             EditBan e = bannedPlayers.get(i);
             if (e.name.equals(p)) {
+                // If the current ban is selected in editor, get rid of it
+                if (editor.ban != null && editor.ban.equals(e)) {
+                    editor.ban = null;
+                }
                 found = true;
                 bannedPlayers.remove(i);
                 // Don't break, cycle through all banned players in case player
@@ -253,6 +257,7 @@ public class FigAdmin extends JavaPlugin {
             }
         }
         if (found) {
+            
             // Log in console
             log.log(Level.INFO, "[FigAdmin] " + kicker + " unbanned player " + p + ".");
 
@@ -364,10 +369,6 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean banPlayer(CommandSender sender, String[] args) {
-        return banPlayer(sender, args, false);
-    }
-
-    private boolean banPlayer(CommandSender sender, String[] args, boolean ipBan) {
         try {
             boolean auth = false;
             Player player = null;
@@ -387,6 +388,8 @@ public class FigAdmin extends JavaPlugin {
             // Has enough arguments?
             if (args.length < 1)
                 return false;
+
+            boolean ipBan = getConfig().getBoolean("figadmin.ipban");
             String p = args[0]; // Get the victim's name
             if (!validName(p)) {
                 sender.sendMessage(formatMessage(getConfig().getString("messages.badPlayerName", "bad player name")));
@@ -419,7 +422,7 @@ public class FigAdmin extends JavaPlugin {
             if (victim != null) {
                 ip = victim.getAddress().getAddress().getHostAddress();
             }
-            if (ipBan) {
+            if (ipBan && ip != null) {
                 ban = new EditBan(p, reason, kicker, ip, EditBan.IPBAN);
             } else {
                 ban = new EditBan(p, reason, kicker, ip, EditBan.BAN);
@@ -561,10 +564,43 @@ public class FigAdmin extends JavaPlugin {
             return true;
         }
         if (isBanned(p))
-            sender.sendMessage(formatMessage(getConfig().getString("messages.playerBanned","player banned").replaceAll("%player%", p)));
+            sender.sendMessage(formatMessage(getConfig().getString("messages.playerBanned", "player banned")
+                    .replaceAll("%player%", p)));
         else
-            sender.sendMessage(formatMessage(getConfig().getString("messages.playerNotBanned","player not banned").replaceAll("%player%", p)));
+            sender.sendMessage(formatMessage(getConfig().getString("messages.playerNotBanned", "player not banned")
+                    .replaceAll("%player%", p)));
         return true;
+    }
+
+    private boolean ipBan(CommandSender sender, String[] args) {
+        boolean auth = false;
+        Player player = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
+            if (permission.has(player, "figadmin.ipban"))
+                auth = true;
+        } else {
+            auth = true;
+        }
+        // Has permission?
+        if (!auth)
+            return true;
+
+        boolean success = false;
+        if (args.length > 0) {
+            if (args[0].equals("on") || args[0].equals("true")) {
+                getConfig().set("ip-ban", true);
+            } else if (args[0].equals("off") || args[0].equals("false")) {
+                getConfig().set("ip-ban", false);
+            } else {
+                return false;
+            }
+            saveConfig();
+            success = true;
+        }
+        boolean ipban = getConfig().getBoolean("ip-ban");
+        sender.sendMessage(formatMessage(getConfig().getString("messages.ipBan") + " " + ((ipban) ? "on" : "off")));
+        return success;
     }
 
     private boolean warnPlayer(CommandSender sender, String[] args) {
@@ -626,16 +662,16 @@ public class FigAdmin extends JavaPlugin {
 
         // Send message to all players
         if (broadcast) {
-            this.getServer().broadcastMessage(formatMessage(
-                    getConfig().getString("messages.warnMsgBroadcast", "warning from %player% by %kicker%")
-                    .replaceAll("%player%", p).replaceAll("%kicker%", kicker)));
+            this.getServer().broadcastMessage(
+                    formatMessage(getConfig()
+                            .getString("messages.warnMsgBroadcast", "warning from %player% by %kicker%")
+                            .replaceAll("%player%", p).replaceAll("%kicker%", kicker)));
             this.getServer().broadcastMessage(ChatColor.GRAY + "  " + reason);
         } else {
             if (victim != null) { // If he is online, kick him with a nice
                                   // message :)
-                victim.sendMessage(formatMessage(
-                        getConfig().getString("messages.warnMsgVictim", "warning from %player%")
-                        .replaceAll("%kicker%", kicker)));
+                victim.sendMessage(formatMessage(getConfig().getString("messages.warnMsgVictim",
+                        "warning from %player%").replaceAll("%kicker%", kicker)));
                 victim.sendMessage(ChatColor.GRAY + "  " + reason);
             }
         }
@@ -660,7 +696,7 @@ public class FigAdmin extends JavaPlugin {
         }
         super.reloadConfig();
         onEnable();
-        
+
         log.log(Level.INFO, "[FigAdmin] " + p + " Reloaded FigAdmin.");
         sender.sendMessage(formatMessage(getConfig().getString("messages.reloadMsg", "reloaded")));
         return true;
@@ -687,7 +723,7 @@ public class FigAdmin extends JavaPlugin {
             } catch (IOException e) {
                 FigAdmin.log.log(Level.SEVERE, "FigAdmin: Couldn't write to banned-players.txt");
             }
-            sender.sendMessage(formatMessage(getConfig().getString("messages.exportMsg","expored")));
+            sender.sendMessage(formatMessage(getConfig().getString("messages.exportMsg", "expored")));
             return true;
         }
         return false;
@@ -698,9 +734,9 @@ public class FigAdmin extends JavaPlugin {
         for (int i = 0; i < bannedPlayers.size(); i++) {
             EditBan e = bannedPlayers.get(i);
             if (e.name.equals(name)) {
-                if (e.endTime  < 1) {
+                if (e.endTime < 1) {
                     return true;
-                } else if (e.endTime > (System.currentTimeMillis()/1000) ) {
+                } else if (e.endTime > (System.currentTimeMillis() / 1000)) {
                     // Time is up =D
                     return false;
                 } else {
@@ -711,5 +747,4 @@ public class FigAdmin extends JavaPlugin {
         }
         return false;
     }
-
 }

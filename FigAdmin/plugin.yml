@@ -1,7 +1,7 @@
 name: FigAdmin
 main: com.btbb.figadmin.FigAdmin
 depend: [Vault]
-version: 4.0.4
+version: 4.0.5
 website: http://www.bobtheblueberry.com
 author: Serge Humphrey
 description: >
@@ -26,8 +26,8 @@ commands:
     description: Reload the entire plugin.
     usage: /<command>
   ipban:
-    description: IP-ban a player
-    usage: /<command> player [reason]
+    description: Turns IP banning on|off
+    usage: /<command> on|off
   exportbans:
     description: Export bans to banned-players.txt
     usage: /<command>

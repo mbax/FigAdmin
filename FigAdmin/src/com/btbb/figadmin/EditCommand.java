@@ -120,8 +120,10 @@ public class EditCommand implements CommandExecutor {
 
     private void showBanInfo(EditBan eb, CommandSender sender) {
         DateFormat shortTime = DateFormat.getDateTimeInstance();
+        sender.sendMessage(ChatColor.AQUA + banType(ban.type) );
         sender.sendMessage(ChatColor.GOLD + " | " + ChatColor.WHITE + eb.name + ChatColor.YELLOW + " was banned by "
-                + ChatColor.WHITE + eb.admin + ChatColor.YELLOW + " at " + shortTime.format((new Date(eb.time * 1000))));
+                + ChatColor.WHITE + eb.admin + ChatColor.YELLOW);
+        sender.sendMessage(ChatColor.GOLD +" | at " + shortTime.format((new Date(eb.time * 1000))));
         if (eb.endTime > 0)
             sender.sendMessage(ChatColor.GOLD + " | " + ChatColor.YELLOW + "Will be unbanned at "
                     + shortTime.format((new Date(eb.endTime * 1000))));
@@ -160,7 +162,7 @@ public class EditCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "No records");
             return true;
         }
-        sender.sendMessage(ChatColor.GOLD + "Found " + bans.size() + " records for keyword " + bans.get(0).name + ":");
+        sender.sendMessage(ChatColor.GOLD + "Found " + bans.size() + " records for keyword " + args[1] + ":");
         for (EditBan ban : bans) {
             sender.sendMessage(ChatColor.AQUA + banType(ban.type) + ChatColor.YELLOW + ban.id + 
                     " "+ban.name +
@@ -268,16 +270,17 @@ public class EditCommand implements CommandExecutor {
 
         }
 
+        boolean show = false;
         if (args[1].equalsIgnoreCase("set")) {
             if (args.length < 3) {
                 sender.sendMessage(ChatColor.RED + "Usage: reason set <text>");
-                return true;
+                show = true;
             }
             ban.reason = plugin.combineSplit(2, args, " ");
             ban.reason = plugin.formatMessage(ban.reason);
-            return true;
+            show = true;
         }
-        if (args[1].equalsIgnoreCase("show")) {
+        if (show || args[1].equalsIgnoreCase("show")) {
             sender.sendMessage(ChatColor.YELLOW + "Reason: " + ChatColor.WHITE + ban.reason);
             return true;
         }
@@ -285,7 +288,6 @@ public class EditCommand implements CommandExecutor {
     }
 
     private boolean time(CommandSender sender, String[] args) {
-
         if (args.length < 4) {
             sender.sendMessage(ChatColor.RED + "Usage: time <add/sub/set> <time> <sec/min/hour/day/week/month>");
             return true;

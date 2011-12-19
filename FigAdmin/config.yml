@@ -4,6 +4,7 @@ mysql-user: root
 mysql-password: root
 mysql-table: banlist
 auto-complete: true
+ip-ban: false
 messages:
   banMsgFailed: '&cPlayer &e%victim% &cis already banned!'
   unbanMsg: '&aSuccessfully unbanned player &e%victim%&a!'
@@ -31,3 +32,4 @@ messages:
   exportMsg: '&aExported banlist to banned-players.txt'
   playerBanned: '&cPlayer %player% is banned.'
   playerNotBanned: '&aPlayer %player% is not banned.'
+  ipBan: '&eIP banning is'
