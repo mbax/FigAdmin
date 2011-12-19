@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,10 +18,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import com.nijikokun.bukkit.Permissions.Permissions;
 
 /**
  * Admin plugin for Bukkit.
@@ -32,7 +33,7 @@ public class FigAdmin extends JavaPlugin {
 
     public static final Logger log = Logger.getLogger("Minecraft");
 
-    Permissions CurrentPermissions = null;
+    Permission permission = null;
     Database db;
     String maindir = "plugins/FigAdmin/";
     ArrayList<EditBan> bannedPlayers;
@@ -42,23 +43,13 @@ public class FigAdmin extends JavaPlugin {
     public boolean autoComplete;
     private EditCommand editor;
 
-    // NOTE: Event registration should be done in onEnable not here as all
-    // events are unregistered when a plugin is disabled
-
-    public void setupPermissions() {
-        Plugin plugin = this.getServer().getPluginManager().getPlugin("Permissions");
-
-        if (CurrentPermissions == null) {
-            // Permission plugin already registered
-            return;
+    private Boolean setupPermissions()
+    {
+        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if (permissionProvider != null) {
+            permission = permissionProvider.getProvider();
         }
-
-        if (plugin != null) {
-            CurrentPermissions = (Permissions) plugin;
-        } else {
-            log.log(Level.CONFIG, "Permissions plugin is required for this plugin to work. Disabling FigAdmin");
-            this.getServer().getPluginManager().disablePlugin(this);
-        }
+        return (permission != null);
     }
 
     public void onDisable() {
@@ -85,6 +76,11 @@ public class FigAdmin extends JavaPlugin {
     public void onEnable() {
         new File(maindir).mkdir();
 
+        if (!setupPermissions()) {
+            System.out.println("[KiwiAdmin]: Error, can't initialize permissions, do you have vault?");
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         setupConfig();
 
         boolean useMysql = getConfig().getBoolean("mysql", false);
@@ -225,7 +221,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (Permissions.Security.permission(player, "figadmin.unban"))
+            if (permission.has(player, "figadmin.unban"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -284,7 +280,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (Permissions.Security.permission(player, "figadmin.kick"))
+            if (permission.has(player, "figadmin.kick"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -320,7 +316,7 @@ public class FigAdmin extends JavaPlugin {
 
         if (p.equals("*")) {
             if (sender instanceof Player)
-                if (!Permissions.Security.permission(player, "figadmin.kick.all"))
+                if (!permission.has(player, "figadmin.kick.all"))
                     return false;
 
             String kickerMsg = getConfig().getString("messages.kickAllMsg");
@@ -378,7 +374,7 @@ public class FigAdmin extends JavaPlugin {
             String kicker = "server";
             if (sender instanceof Player) {
                 player = (Player) sender;
-                if (Permissions.Security.permission(player, "figadmin.ban"))
+                if (permission.has(player, "figadmin.ban"))
                     auth = true;
                 kicker = player.getName();
             } else {
@@ -466,7 +462,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (Permissions.Security.permission(player, "figadmin.tempban"))
+            if (permission.has(player, "figadmin.tempban"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -550,7 +546,7 @@ public class FigAdmin extends JavaPlugin {
         boolean auth = false;
         if (sender instanceof Player) {
             Player p = (Player) sender;
-            if (Permissions.Security.permission(p, "figadmin.checkban")) {
+            if (permission.has(p, "figadmin.checkban")) {
                 auth = true;
             }
         } else {
@@ -577,7 +573,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (Permissions.Security.permission(player, "figadmin.warn"))
+            if (permission.has(player, "figadmin.warn"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -653,7 +649,7 @@ public class FigAdmin extends JavaPlugin {
         String p = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (Permissions.Security.permission(player, "figadmin.reload"))
+            if (permission.has(player, "figadmin.reload"))
                 auth = true;
             p = player.getName();
         } else {
@@ -675,7 +671,7 @@ public class FigAdmin extends JavaPlugin {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (Permissions.Security.permission(player, "figadmin.export"))
+            if (permission.has(player, "figadmin.export"))
                 auth = true;
         } else {
             auth = true;

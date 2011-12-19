@@ -32,8 +32,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.nijikokun.bukkit.Permissions.Permissions;
-
 public class EditCommand implements CommandExecutor {
 
     FigAdmin plugin;
@@ -68,7 +66,7 @@ public class EditCommand implements CommandExecutor {
 
         try {
             if (sender instanceof Player)
-                if (!Permissions.Security.has((Player) sender, "figadmin.editban"))
+                if (!plugin.permission.has((Player) sender, "figadmin.editban"))
                     return true;
 
             if (args.length < 1)

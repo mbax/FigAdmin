@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="/home/ubuntu/Devel/craftbukkit-1.0.0-SNAPSHOT.jar" sourcepath="/Bukkit/src"/>
-	<classpathentry kind="lib" path="/home/ubuntu/Devel/bpermissions.jar"/>
 	<classpathentry kind="lib" path="/usr/share/java/mysql-connector-java.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/workspace/FigAdmin/Vault.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
