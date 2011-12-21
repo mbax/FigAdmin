@@ -66,7 +66,7 @@ public class EditCommand implements CommandExecutor {
 
         try {
             if (sender instanceof Player)
-                if (!plugin.permission.has((Player) sender, "figadmin.editban"))
+                if (!plugin.hasPermission((Player) sender, "figadmin.editban"))
                     return true;
 
             if (args.length < 1)

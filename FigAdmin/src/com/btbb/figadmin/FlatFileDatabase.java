@@ -46,7 +46,7 @@ public class FlatFileDatabase extends Database {
 
     int id = 0;
 
-    public void initialize(FigAdmin plugin) {
+    public boolean initialize(FigAdmin plugin) {
 
         this.plugin = plugin;
         banlist = new File("plugins/FigAdmin/banlist.txt");
@@ -55,8 +55,10 @@ public class FlatFileDatabase extends Database {
                 banlist.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
         }
+        return true;
     }
 
     @Override

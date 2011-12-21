@@ -22,7 +22,10 @@ SOFTWARE.
 
 package com.btbb.figadmin;
 
+import static org.bukkit.Bukkit.getLogger;
+
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -50,15 +53,60 @@ public class MySQLDatabase extends Database {
 
             return DriverManager.getConnection(mysqlDatabase + "?autoReconnect=true&user="
                     + mysqlUser + "&password=" + mysqlPassword);
+            
         } catch (SQLException ex) {
             FigAdmin.log.log(Level.SEVERE, "Unable to retreive connection", ex);
         }
         return null;
     }
 
-    public void initialize(FigAdmin plugin) {
+    public boolean initialize(FigAdmin plugin) {
         this.plugin = plugin;
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
 
+        String table = plugin.getConfig().getString("mysql-table");
+        try {
+            conn = getSQLConnection();
+            DatabaseMetaData dbm = conn.getMetaData();
+            if (!dbm.getTables(null, null, table, null).next()) {
+                getLogger().log(Level.INFO, "[FigAdmin] Creating table " + table + ".");
+                ps = conn.prepareStatement("CREATE TABLE `" + table + "` ( \n" +
+"  `name` varchar(32) NOT NULL, \n" +
+"  `reason` text NOT NULL, \n " +
+"  `admin` varchar(32) NOT NULL, \n" +
+"  `time` bigint(20) NOT NULL, \n " +
+"  `temptime` bigint(20) NOT NULL DEFAULT '0', \n" +
+"  `type` int(11) NOT NULL DEFAULT '0', \n" +
+"  `id` int(11) NOT NULL AUTO_INCREMENT, \n" +
+"  `ip` varchar(16) DEFAULT NULL, \n" +
+"  PRIMARY KEY (`id`) USING BTREE \n" +
+") ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ROW_FORMAT=DYNAMIC;");
+                ps.execute();
+                if (!dbm.getTables(null, null, table, null).next())
+                    throw new SQLException("Table " + table + " not found; tired to create and failed");
+            }
+        } catch (SQLException ex) {
+            FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ", ex);
+            return false;
+        } finally {
+            try {
+                if (ps != null)
+                    ps.close();
+                if (conn != null)
+                    conn.close();
+                if (rs != null)
+                    rs.close();
+            } catch (SQLException ex) {
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
+                        ex);
+            }
+
+        }
+        
+        return true;
+        
     }
 
     public String getAddress(String pName) {
@@ -67,9 +115,10 @@ public class MySQLDatabase extends Database {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
+        String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT `ip` FROM banlist WHERE name = ?");
+            ps = conn.prepareStatement("SELECT `ip` FROM `" + mysqlTable + "` WHERE name = ?");
             ps.setString(1, pName);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -133,8 +182,8 @@ public class MySQLDatabase extends Database {
         PreparedStatement ps = null;
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("INSERT INTO " + mysqlTable
-                    + " (name,reason,admin,temptime,type,time) VALUES(?,?,?,?,?,?)");
+            ps = conn.prepareStatement("INSERT INTO `" + mysqlTable
+                    + "` (name,reason,admin,temptime,type,time) VALUES(?,?,?,?,?,?)");
             ps.setString(1, e.name);
             ps.setString(2, e.reason);
             ps.setString(3, e.admin);
@@ -171,8 +220,8 @@ public class MySQLDatabase extends Database {
         ResultSet rs = null;
         String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
-            ps = conn.prepareStatement("SELECT * FROM " + mysqlTable
-                    + " WHERE name = ? ORDER BY id DESC LIMIT 1");
+            ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable
+                    + "` WHERE name = ? ORDER BY id DESC LIMIT 1");
             ps.setString(1, player);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -199,9 +248,10 @@ public class MySQLDatabase extends Database {
 
         Connection conn = null;
         PreparedStatement ps = null;
+        String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("UPDATE `banlist` SET ip = ? WHERE name = ?");
+            ps = conn.prepareStatement("UPDATE `" + mysqlTable + "` SET ip = ? WHERE name = ?");
             ps.setString(1, ip);
             ps.setString(2, p);
             ps.executeUpdate();
@@ -225,9 +275,10 @@ public class MySQLDatabase extends Database {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+        String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM banlist WHERE name "+ 
+            ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable + "` WHERE name "+ 
              ((exact) ? "=" : "LIKE") +" ? ORDER BY time DESC LIMIT 10");
             if (exact) {
                 ps.setString(1, name);
@@ -273,10 +324,11 @@ public class MySQLDatabase extends Database {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+        String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
-            String statement = "SELECT * FROM banlist WHERE name = ? ORDER BY time DESC LIMIT 1";
+            String statement = "SELECT * FROM " + mysqlTable + " WHERE name = ? ORDER BY time DESC LIMIT 1";
             if (pName == null) {
-                statement = "SELECT * FROM banlist WHERE id = ?";
+                statement = "SELECT * FROM " + mysqlTable + " WHERE id = ?";
             }
             conn = getSQLConnection();
             ps = conn.prepareStatement(statement);

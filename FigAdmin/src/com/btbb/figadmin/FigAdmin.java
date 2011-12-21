@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.ChatColor;
@@ -43,15 +44,6 @@ public class FigAdmin extends JavaPlugin {
     public boolean autoComplete;
     private EditCommand editor;
 
-    private Boolean setupPermissions() {
-        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(
-                net.milkbowl.vault.permission.Permission.class);
-        if (permissionProvider != null) {
-            permission = permissionProvider.getProvider();
-        }
-        return (permission != null);
-    }
-
     public void onDisable() {
         bannedPlayers = null;
         System.out.println("FigAdmin disabled.");
@@ -77,9 +69,8 @@ public class FigAdmin extends JavaPlugin {
         new File(maindir).mkdir();
 
         if (!setupPermissions()) {
-            System.out.println("[KiwiAdmin]: Error, can't initialize permissions, do you have vault?");
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
+            System.out.println("[FigAdmin]: Error, can't initialize permissions, do you have Vault?");
+            System.out.println("[FigAdmin]: It's okay, you just need to be an Operator to use FigAdmin Commands.");
         }
         setupConfig();
 
@@ -95,7 +86,21 @@ public class FigAdmin extends JavaPlugin {
         } else {
             db = new FlatFileDatabase();
         }
-        db.initialize(this);
+        boolean dbinit = false;
+        if (!(dbinit = db.initialize(this))) {
+            if (useMysql) {
+                log.log(Level.WARNING, "[FigAdmin] Can't set up MySQL, trying flatfile");
+                db = new FlatFileDatabase();
+                if (!(dbinit = db.initialize(this))) {
+                    log.log(Level.WARNING, "[FigAdmin] Flatfile doesn't work either, disabling FigAdmin");
+                }
+            }
+        }
+        if (!dbinit) {
+            log.log(Level.WARNING, "[FigAdmin] Can't set up flatfile, disabling FigAdmin");
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         bannedPlayers = db.getBannedPlayers();
 
         this.autoComplete = getConfig().getBoolean("auto-complete", true);
@@ -215,13 +220,37 @@ public class FigAdmin extends JavaPlugin {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
+    private boolean setupPermissions() {
+        try {
+
+            // Not a great method, what ever
+            Vault v = (Vault) getServer().getPluginManager().getPlugin("Vault");
+            RegisteredServiceProvider<Permission> permissionProvider;
+            permissionProvider = (RegisteredServiceProvider<Permission>) getServer().getServicesManager()
+                    .getRegistrations(v).get(0);
+            if (permissionProvider != null) {
+                permission = permissionProvider.getProvider();
+            }
+            if (permissionProvider != null) {
+                permission = permissionProvider.getProvider();
+            }
+        } catch (ClassCastException exc) {
+            log.log(Level.SEVERE, "[FigAdmin] Something is wrong with vault, it is doing things it shouldn't");
+            exc.printStackTrace();
+        } catch (Exception exc) {
+            log.log(Level.WARNING, "[FigAdmin] Can't enable Vault, oh well");
+        }
+        return (permission != null);
+    }
+
     private boolean unBanPlayer(CommandSender sender, String[] args) {
         boolean auth = false;
         Player player = null;
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.unban"))
+            if (hasPermission(player, "figadmin.unban"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -257,7 +286,7 @@ public class FigAdmin extends JavaPlugin {
             }
         }
         if (found) {
-            
+
             // Log in console
             log.log(Level.INFO, "[FigAdmin] " + kicker + " unbanned player " + p + ".");
 
@@ -285,7 +314,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.kick"))
+            if (hasPermission(player, "figadmin.kick"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -321,7 +350,7 @@ public class FigAdmin extends JavaPlugin {
 
         if (p.equals("*")) {
             if (sender instanceof Player)
-                if (!permission.has(player, "figadmin.kick.all"))
+                if (!hasPermission(player, "figadmin.kick.all"))
                     return false;
 
             String kickerMsg = getConfig().getString("messages.kickAllMsg");
@@ -375,7 +404,7 @@ public class FigAdmin extends JavaPlugin {
             String kicker = "server";
             if (sender instanceof Player) {
                 player = (Player) sender;
-                if (permission.has(player, "figadmin.ban"))
+                if (hasPermission(player, "figadmin.ban"))
                     auth = true;
                 kicker = player.getName();
             } else {
@@ -465,7 +494,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.tempban"))
+            if (hasPermission(player, "figadmin.tempban"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -549,7 +578,7 @@ public class FigAdmin extends JavaPlugin {
         boolean auth = false;
         if (sender instanceof Player) {
             Player p = (Player) sender;
-            if (permission.has(p, "figadmin.checkban")) {
+            if (hasPermission(p, "figadmin.checkban")) {
                 auth = true;
             }
         } else {
@@ -577,7 +606,7 @@ public class FigAdmin extends JavaPlugin {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.ipban"))
+            if (hasPermission(player, "figadmin.ipban"))
                 auth = true;
         } else {
             auth = true;
@@ -609,7 +638,7 @@ public class FigAdmin extends JavaPlugin {
         String kicker = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.warn"))
+            if (hasPermission(player, "figadmin.warn"))
                 auth = true;
             kicker = player.getName();
         } else {
@@ -620,7 +649,7 @@ public class FigAdmin extends JavaPlugin {
             return true;
 
         // Has enough arguments?
-        if (args.length < 1)
+        if (args.length < 2)
             return false;
 
         String p = args[0]; // Get the victim's name
@@ -685,7 +714,7 @@ public class FigAdmin extends JavaPlugin {
         String p = "server";
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.reload"))
+            if (hasPermission(player, "figadmin.reload"))
                 auth = true;
             p = player.getName();
         } else {
@@ -707,7 +736,7 @@ public class FigAdmin extends JavaPlugin {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
-            if (permission.has(player, "figadmin.export"))
+            if (hasPermission(player, "figadmin.export"))
                 auth = true;
         } else {
             auth = true;
@@ -746,5 +775,12 @@ public class FigAdmin extends JavaPlugin {
             }
         }
         return false;
+    }
+    
+    public boolean hasPermission(Player player, String perm) {
+        if (permission == null) {
+            return player.isOp();
+        }
+        return permission.has(player, perm);
     }
 }

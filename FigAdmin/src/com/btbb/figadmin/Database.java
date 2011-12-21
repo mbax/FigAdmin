@@ -28,7 +28,7 @@ public abstract class Database {
 
 	protected FigAdmin plugin;
 
-	public abstract void initialize(FigAdmin plugin);
+	public abstract boolean initialize(FigAdmin plugin);
 
 	/*
 	 * Remove a player from banlist
