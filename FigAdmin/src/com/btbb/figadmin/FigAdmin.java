@@ -223,24 +223,17 @@ public class FigAdmin extends JavaPlugin {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     private boolean setupPermissions() {
         try {
-
-            // Not a great method, what ever
             Vault v = (Vault) getServer().getPluginManager().getPlugin("Vault");
-            RegisteredServiceProvider<Permission> permissionProvider;
-            permissionProvider = (RegisteredServiceProvider<Permission>) getServer().getServicesManager()
-                    .getRegistrations(v).get(0);
-            if (permissionProvider != null) {
-                permission = permissionProvider.getProvider();
+            if (v != null) {
+                RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager()
+                        .getRegistration(net.milkbowl.vault.permission.Permission.class);
+                if (permissionProvider != null) {
+                    permission = permissionProvider.getProvider();
+                }
+                return (permission != null);
             }
-            if (permissionProvider != null) {
-                permission = permissionProvider.getProvider();
-            }
-        } catch (ClassCastException exc) {
-            log.log(Level.SEVERE, "[FigAdmin] Something is wrong with vault, it is doing things it shouldn't");
-            exc.printStackTrace();
         } catch (Exception exc) {
             log.log(Level.WARNING, "[FigAdmin] Can't enable Vault, oh well");
         }
@@ -760,6 +753,7 @@ public class FigAdmin extends JavaPlugin {
         }
         return false;
     }
+
     private boolean importFromKiwi(CommandSender sender, String[] args) {
         boolean auth = false;
         Player player = null;
@@ -772,7 +766,7 @@ public class FigAdmin extends JavaPlugin {
         if (!auth) {
             return true;
         }
-        
+
         if (!(db instanceof MySQLDatabase)) {
             String msg = "Silly you, you aren't even using MySQL!";
             if (player == null) {
@@ -789,7 +783,7 @@ public class FigAdmin extends JavaPlugin {
         if (args.length > 1) {
             database = args[1];
         }
-        String msg = ((MySQLDatabase)db).importFromKiwi(args[0], database);
+        String msg = ((MySQLDatabase) db).importFromKiwi(args[0], database);
         if (player == null) {
             System.out.println(msg);
         } else {
@@ -816,7 +810,7 @@ public class FigAdmin extends JavaPlugin {
         }
         return false;
     }
-    
+
     public boolean hasPermission(Player player, String perm) {
         if (permission == null) {
             return player.isOp();

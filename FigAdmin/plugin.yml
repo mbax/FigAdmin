@@ -1,7 +1,7 @@
 name: FigAdmin
 main: com.btbb.figadmin.FigAdmin
 softdepend: [Vault]
-version: 4.0.7
+version: 4.0.8
 website: http://www.bobtheblueberry.com
 author: Serge Humphrey
 description: >
