@@ -216,6 +216,9 @@ public class FigAdmin extends JavaPlugin {
         if (commandName.equals("exportbans")) {
             return exportBans(sender);
         }
+        if (commandName.equals("importkiwi")) {
+            return importFromKiwi(sender, trimmedArgs);
+        }
 
         return false;
     }
@@ -756,6 +759,43 @@ public class FigAdmin extends JavaPlugin {
             return true;
         }
         return false;
+    }
+    private boolean importFromKiwi(CommandSender sender, String[] args) {
+        boolean auth = false;
+        Player player = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
+            auth = player.isOp();
+        } else {
+            auth = true;
+        }
+        if (!auth) {
+            return true;
+        }
+        
+        if (!(db instanceof MySQLDatabase)) {
+            String msg = "Silly you, you aren't even using MySQL!";
+            if (player == null) {
+                System.out.println(msg);
+            } else {
+                player.sendMessage(msg);
+            }
+            return true;
+        }
+        if (args.length < 1) {
+            return false;
+        }
+        String database = null;
+        if (args.length > 1) {
+            database = args[1];
+        }
+        String msg = ((MySQLDatabase)db).importFromKiwi(args[0], database);
+        if (player == null) {
+            System.out.println(msg);
+        } else {
+            player.sendMessage(ChatColor.BLUE + msg);
+        }
+        return true;
     }
 
     private boolean isBanned(String name) {

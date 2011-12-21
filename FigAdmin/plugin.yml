@@ -1,7 +1,7 @@
 name: FigAdmin
 main: com.btbb.figadmin.FigAdmin
 softdepend: [Vault]
-version: 4.0.6
+version: 4.0.7
 website: http://www.bobtheblueberry.com
 author: Serge Humphrey
 description: >
@@ -38,3 +38,6 @@ commands:
     description: Edit a ban
     usage: /<command> <list/search/load/id/save/show/reason/time/delete/cancel>
     aliases: [eb,eban]
+  importkiwi:
+    description: Import table from KiwiAdmin
+    usage: /<command> table [database] - Imports bans from KiwiAdmin table

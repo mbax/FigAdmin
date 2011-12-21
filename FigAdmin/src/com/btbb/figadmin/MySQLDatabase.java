@@ -43,21 +43,25 @@ public class MySQLDatabase extends Database {
         plugin = instance;
     }
 
-    public Connection getSQLConnection() {
+    public Connection getSQLConnection(String mysqlDatabase) {
         FileConfiguration Config = plugin.getConfig();
-        String mysqlDatabase = Config.getString("mysql-database",
-                "jdbc:mysql://localhost:3306/minecraft");
         String mysqlUser = Config.getString("mysql-user", "root");
         String mysqlPassword = Config.getString("mysql-password", "root");
         try {
 
-            return DriverManager.getConnection(mysqlDatabase + "?autoReconnect=true&user="
-                    + mysqlUser + "&password=" + mysqlPassword);
-            
+            return DriverManager.getConnection(mysqlDatabase + "?autoReconnect=true&user=" + mysqlUser + "&password="
+                    + mysqlPassword);
+
         } catch (SQLException ex) {
             FigAdmin.log.log(Level.SEVERE, "Unable to retreive connection", ex);
         }
         return null;
+    }
+
+    public Connection getSQLConnection() {
+        String mysqlDatabase = plugin.getConfig().getString("mysql-database", "jdbc:mysql://localhost:3306/minecraft");
+        return getSQLConnection(mysqlDatabase);
+
     }
 
     public boolean initialize(FigAdmin plugin) {
@@ -72,17 +76,12 @@ public class MySQLDatabase extends Database {
             DatabaseMetaData dbm = conn.getMetaData();
             if (!dbm.getTables(null, null, table, null).next()) {
                 getLogger().log(Level.INFO, "[FigAdmin] Creating table " + table + ".");
-                ps = conn.prepareStatement("CREATE TABLE `" + table + "` ( \n" +
-"  `name` varchar(32) NOT NULL, \n" +
-"  `reason` text NOT NULL, \n " +
-"  `admin` varchar(32) NOT NULL, \n" +
-"  `time` bigint(20) NOT NULL, \n " +
-"  `temptime` bigint(20) NOT NULL DEFAULT '0', \n" +
-"  `type` int(11) NOT NULL DEFAULT '0', \n" +
-"  `id` int(11) NOT NULL AUTO_INCREMENT, \n" +
-"  `ip` varchar(16) DEFAULT NULL, \n" +
-"  PRIMARY KEY (`id`) USING BTREE \n" +
-") ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ROW_FORMAT=DYNAMIC;");
+                ps = conn.prepareStatement("CREATE TABLE `" + table + "` ( \n" + "  `name` varchar(32) NOT NULL, \n"
+                        + "  `reason` text NOT NULL, \n " + "  `admin` varchar(32) NOT NULL, \n"
+                        + "  `time` bigint(20) NOT NULL, \n " + "  `temptime` bigint(20) NOT NULL DEFAULT '0', \n"
+                        + "  `type` int(11) NOT NULL DEFAULT '0', \n" + "  `id` int(11) NOT NULL AUTO_INCREMENT, \n"
+                        + "  `ip` varchar(16) DEFAULT NULL, \n" + "  PRIMARY KEY (`id`) USING BTREE \n"
+                        + ") ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ROW_FORMAT=DYNAMIC;");
                 ps.execute();
                 if (!dbm.getTables(null, null, table, null).next())
                     throw new SQLException("Table " + table + " not found; tired to create and failed");
@@ -99,14 +98,13 @@ public class MySQLDatabase extends Database {
                 if (rs != null)
                     rs.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
 
         }
-        
+
         return true;
-        
+
     }
 
     public String getAddress(String pName) {
@@ -136,8 +134,7 @@ public class MySQLDatabase extends Database {
                 if (rs != null)
                     rs.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
 
         }
@@ -166,8 +163,7 @@ public class MySQLDatabase extends Database {
                 if (conn != null)
                     conn.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
         return true;
@@ -208,8 +204,7 @@ public class MySQLDatabase extends Database {
                 if (conn != null)
                     conn.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
     }
@@ -220,8 +215,7 @@ public class MySQLDatabase extends Database {
         ResultSet rs = null;
         String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
-            ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable
-                    + "` WHERE name = ? ORDER BY id DESC LIMIT 1");
+            ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable + "` WHERE name = ? ORDER BY id DESC LIMIT 1");
             ps.setString(1, player);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -237,8 +231,7 @@ public class MySQLDatabase extends Database {
                 if (conn != null)
                     conn.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
         return null;
@@ -264,8 +257,7 @@ public class MySQLDatabase extends Database {
                 if (conn != null)
                     conn.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
 
@@ -278,12 +270,12 @@ public class MySQLDatabase extends Database {
         String mysqlTable = plugin.getConfig().getString("mysql-table");
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable + "` WHERE name "+ 
-             ((exact) ? "=" : "LIKE") +" ? ORDER BY time DESC LIMIT 10");
+            ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable + "` WHERE name " + ((exact) ? "=" : "LIKE")
+                    + " ? ORDER BY time DESC LIMIT 10");
             if (exact) {
                 ps.setString(1, name);
             } else {
-                ps.setString(1, "%"+name+"%");
+                ps.setString(1, "%" + name + "%");
             }
             rs = ps.executeQuery();
             ArrayList<EditBan> bans = new ArrayList<EditBan>();
@@ -302,8 +294,7 @@ public class MySQLDatabase extends Database {
                 if (rs != null)
                     rs.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
         return null;
@@ -340,8 +331,8 @@ public class MySQLDatabase extends Database {
             rs = ps.executeQuery();
             while (rs.next()) {
                 return new EditBan(rs.getInt("id"), rs.getString("name"), rs.getString("reason"),
-                        rs.getString("admin"), rs.getLong("time"), rs.getLong("temptime"),
-                        rs.getInt("type"), rs.getString("ip"));
+                        rs.getString("admin"), rs.getLong("time"), rs.getLong("temptime"), rs.getInt("type"),
+                        rs.getString("ip"));
             }
         } catch (SQLException ex) {
             FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ", ex);
@@ -354,8 +345,7 @@ public class MySQLDatabase extends Database {
                 if (rs != null)
                     rs.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
         return null;
@@ -367,14 +357,12 @@ public class MySQLDatabase extends Database {
 
         Connection conn = null;
         PreparedStatement ps = null;
-        
+
         boolean success = false;
         try {
             conn = getSQLConnection();
-            ps = conn
-                    .prepareStatement("UPDATE "
-                            + mysqlTable
-                            + " SET name = ?, reason = ?, admin = ?, time = ?, temptime = ?, type = ? WHERE id = ? LIMIT 1");
+            ps = conn.prepareStatement("UPDATE " + mysqlTable
+                    + " SET name = ?, reason = ?, admin = ?, time = ?, temptime = ?, type = ? WHERE id = ? LIMIT 1");
             ps.setLong(5, ban.endTime);
             ps.setString(1, ban.name);
             ps.setString(2, ban.reason);
@@ -382,8 +370,7 @@ public class MySQLDatabase extends Database {
             ps.setLong(5, ban.time);
             ps.setLong(6, ban.type);
             ps.setInt(7, ban.id);
-            ps.executeUpdate();
-            success = ps.getUpdateCount() > 0;
+            success = ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ", ex);
         } finally {
@@ -393,8 +380,7 @@ public class MySQLDatabase extends Database {
                 if (conn != null)
                     conn.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
         return success;
@@ -406,8 +392,7 @@ public class MySQLDatabase extends Database {
         Connection conn = getSQLConnection();
         String mysqlTable = plugin.getConfig().getString("mysql-table");
         if (conn == null) {
-            FigAdmin.log.log(Level.SEVERE,
-                    "[FigAdmin] Could not establish SQL connection. Disabling FigAdmin");
+            FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Could not establish SQL connection. Disabling FigAdmin");
             plugin.getServer().getPluginManager().disablePlugin(plugin);
             return list;
         } else {
@@ -424,8 +409,7 @@ public class MySQLDatabase extends Database {
                     list.add(e);
                 }
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ", ex);
             } finally {
                 try {
                     if (ps != null)
@@ -435,8 +419,7 @@ public class MySQLDatabase extends Database {
                     if (conn != null)
                         conn.close();
                 } catch (SQLException ex) {
-                    FigAdmin.log.log(Level.SEVERE,
-                            "[FigAdmin] Failed to close MySQL connection: ", ex);
+                    FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
                 }
             }
 
@@ -453,9 +436,8 @@ public class MySQLDatabase extends Database {
     }
 
     private EditBan getEditBan(ResultSet rs) throws SQLException {
-        return new EditBan(rs.getInt("id"), rs.getString("name"), rs.getString("reason"),
-                rs.getString("admin"), rs.getLong("time"), rs.getLong("temptime"),
-                rs.getInt("type"), rs.getString("ip"));
+        return new EditBan(rs.getInt("id"), rs.getString("name"), rs.getString("reason"), rs.getString("admin"),
+                rs.getLong("time"), rs.getLong("temptime"), rs.getInt("type"), rs.getString("ip"));
     }
 
     @Override
@@ -468,8 +450,7 @@ public class MySQLDatabase extends Database {
         boolean success = false;
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("DELETE FROM " + mysqlTable
-                    + " WHERE id = ?  ORDER BY time DESC");
+            ps = conn.prepareStatement("DELETE FROM " + mysqlTable + " WHERE id = ?  ORDER BY time DESC");
             ps.setInt(1, id);
             ps.executeUpdate();
             success = ps.getUpdateCount() > 0;
@@ -483,11 +464,60 @@ public class MySQLDatabase extends Database {
                 if (conn != null)
                     conn.close();
             } catch (SQLException ex) {
-                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ",
-                        ex);
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
             }
         }
         return success;
+    }
+
+    protected String importFromKiwi(String table, String database) {
+        if (database == null) {
+            database = plugin.getConfig().getString("mysql-database");
+        } else {
+            database = "jdbc:mysql://localhost:3306/" + database;
+        }
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = getSQLConnection(database);
+            if (conn == null || !conn.isValid(5)) {
+                return "Can't connect to database `" + database + "`; does it exist?";
+            }
+            DatabaseMetaData dbm = conn.getMetaData();
+            if (!dbm.getTables(null, null, table, null).next()) {
+                return "Table `" + table + "` doesn't exit!";
+            }
+            ps = conn.prepareStatement("SELECT * FROM `" + table + "`");
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String name = rs.getString("name");
+                System.out.println("Added banned player: " + name);
+                long temptime = 0;
+                if (rs.getLong("temptime") > 0) {
+                    temptime = rs.getDate("temptime").getTime() / 1000;
+                }
+                EditBan e = new EditBan(0, name, rs.getString("reason"), rs.getString("admin"),
+                        rs.getLong("time") / 1000, temptime, EditBan.BAN, null);
+                addPlayer(e);
+                plugin.bannedPlayers.add(e);
+            }
+            return "Done!";
+        } catch (SQLException ex) {
+            FigAdmin.log.log(Level.SEVERE, "[FigAdmin][KiwiImport] Couldn't execute MySQL statement: ", ex);
+            return "Error!";
+        } finally {
+            try {
+                if (ps != null)
+                    ps.close();
+                if (conn != null)
+                    conn.close();
+                if (rs != null)
+                    rs.close();
+            } catch (SQLException ex) {
+                FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Failed to close MySQL connection: ", ex);
+            }
+        }
     }
 
 }
