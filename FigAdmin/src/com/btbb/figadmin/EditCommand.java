@@ -68,7 +68,7 @@ public class EditCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         try {
-            if (!plugin.permission.has(sender, "figadmin.editban")) {
+            if (!plugin.hasPermission(sender, "figadmin.editban")) {
                 sender.sendMessage(plugin.formatMessage(plugin.getConfig().getString("messages.noPermission")));
                 return true;
             }

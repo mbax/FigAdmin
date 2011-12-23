@@ -19,6 +19,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
 /**
  * Admin plugin for Bukkit.
  * 
@@ -30,7 +31,6 @@ public class FigAdmin extends JavaPlugin {
 
     public static final Logger log = Logger.getLogger("Minecraft");
 
-    FigPermission permission;
     Database db;
     String maindir = "plugins/FigAdmin/";
     ArrayList<EditBan> bannedPlayers;
@@ -64,7 +64,6 @@ public class FigAdmin extends JavaPlugin {
     public void onEnable() {
         new File(maindir).mkdir();
 
-        permission = new FigPermission(this);
         setupConfig();
 
         boolean useMysql = getConfig().getBoolean("mysql", false);
@@ -224,7 +223,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean unBanPlayer(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.unban")) {
+        if (!hasPermission(sender, "figadmin.unban")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -284,7 +283,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean kickPlayer(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.kick")) {
+        if (!hasPermission(sender, "figadmin.kick")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -320,7 +319,7 @@ public class FigAdmin extends JavaPlugin {
         }
 
         if (p.equals("*")) {
-            if (!permission.has(sender, "figadmin.kick.all")) {
+            if (!hasPermission(sender, "figadmin.kick.all")) {
                 sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
                 return true;
             }
@@ -371,7 +370,7 @@ public class FigAdmin extends JavaPlugin {
 
     private boolean banPlayer(CommandSender sender, String[] args) {
         try {
-            if (!permission.has(sender, "figadmin.ban")) {
+            if (!hasPermission(sender, "figadmin.ban")) {
                 sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
                 return true;
             }
@@ -457,7 +456,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean tempbanPlayer(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.tempban")) {
+        if (!hasPermission(sender, "figadmin.tempban")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -537,7 +536,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean checkBan(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.checkban")) {
+        if (!hasPermission(sender, "figadmin.checkban")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -559,7 +558,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean ipBan(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.ipban")) {
+        if (!hasPermission(sender, "figadmin.ipban")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -582,7 +581,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean warnPlayer(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.warn")) {
+        if (!hasPermission(sender, "figadmin.warn")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -653,7 +652,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean reloadFig(CommandSender sender) {
-        if (!permission.has(sender, "figadmin.reload")) {
+        if (!hasPermission(sender, "figadmin.reload")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -673,7 +672,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean exportBans(CommandSender sender) {
-        if (!permission.has(sender, "figadmin.export")) {
+        if (!hasPermission(sender, "figadmin.export")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -694,7 +693,7 @@ public class FigAdmin extends JavaPlugin {
     }
 
     private boolean unbanIP(CommandSender sender, String[] args) {
-        if (!permission.has(sender, "figadmin.unbanip")) {
+        if (!hasPermission(sender, "figadmin.unbanip")) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.noPermission")));
             return true;
         }
@@ -779,5 +778,18 @@ public class FigAdmin extends JavaPlugin {
             }
         }
         return false;
+    }
+    
+    public boolean hasPermission(CommandSender sender, String perm) {
+        if (sender instanceof Player) {
+            Player p = (Player) sender;
+            if (p.isOp()) {
+                return true;
+            }
+            return sender.hasPermission(perm);
+        } else {
+            // must be console
+            return true;
+        }
     }
 }
