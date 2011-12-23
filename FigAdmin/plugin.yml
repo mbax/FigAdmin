@@ -1,7 +1,7 @@
 name: FigAdmin
 main: com.btbb.figadmin.FigAdmin
-softdepend: [Vault]
-version: 4.0.8
+softdepend: [Vault, Permissions]
+version: 4.0.9
 website: http://www.bobtheblueberry.com
 author: Serge Humphrey
 description: >
@@ -19,12 +19,18 @@ commands:
   unban:
     description: Unban a player
     usage: /<command> player - Unban a player
+  unbanip:
+    description: Unbans players with IP
+    usage: /<command> IP - Unbans players with given IP
   checkban:
     description: Check if a player is banned
     usage: /<command> [player]
   reloadfig:
     description: Reload the entire plugin.
     usage: /<command>
+  figadmin:
+    description: Displays version.
+    usage: /<command> 
   ipban:
     description: Turns IP banning on|off
     usage: /<command> on|off

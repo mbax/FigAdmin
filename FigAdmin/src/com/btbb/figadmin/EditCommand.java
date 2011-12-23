@@ -30,8 +30,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
+/**
+ * Used to edit ban entities
+ * 
+ * @author yottabyte
+ * @author Serge Humphrey
+ * 
+ */
 public class EditCommand implements CommandExecutor {
 
     FigAdmin plugin;
@@ -40,9 +46,6 @@ public class EditCommand implements CommandExecutor {
 
     /**
      * Used to edit ban entities
-     * 
-     * @author yottabyte
-     * @author Serge Humphrey
      */
     EditCommand(FigAdmin plugin) {
         this.plugin = plugin;
@@ -65,9 +68,10 @@ public class EditCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         try {
-            if (sender instanceof Player)
-                if (!plugin.hasPermission((Player) sender, "figadmin.editban"))
-                    return true;
+            if (!plugin.permission.has(sender, "figadmin.editban")) {
+                sender.sendMessage(plugin.formatMessage(plugin.getConfig().getString("messages.noPermission")));
+                return true;
+            }
 
             if (args.length < 1)
                 return false;
@@ -88,26 +92,42 @@ public class EditCommand implements CommandExecutor {
             if (args[0].equalsIgnoreCase("search")) {
                 return search(sender, args);
             }
-            if (ban == null) {
-                sender.sendMessage(ChatColor.RED + "You aren't editing a ban");
-                return true;
-            }
 
             if (args[0].equalsIgnoreCase("save")) {
+                if (ban == null) {
+                    sender.sendMessage(ChatColor.RED + "You aren't editing a ban");
+                    return true;
+                }
                 return save(sender, args);
             }
 
             if (args[0].equalsIgnoreCase("cancel")) {
+                if (ban == null) {
+                    sender.sendMessage(ChatColor.RED + "You aren't editing a ban");
+                    return true;
+                }
                 return cancel(sender, args);
             }
 
             if (args[0].equalsIgnoreCase("show") || args[0].equalsIgnoreCase("view")) {
+                if (ban == null) {
+                    sender.sendMessage(ChatColor.RED + "You aren't editing a ban");
+                    return true;
+                }
                 return view(sender, args);
             }
             if (args[0].equalsIgnoreCase("reason")) {
+                if (ban == null) {
+                    sender.sendMessage(ChatColor.RED + "You aren't editing a ban");
+                    return true;
+                }
                 return reason(sender, args);
             }
             if (args[0].equalsIgnoreCase("time")) {
+                if (ban == null) {
+                    sender.sendMessage(ChatColor.RED + "You aren't editing a ban");
+                    return true;
+                }
                 return time(sender, args);
             }
         } catch (Exception exc) {
@@ -120,10 +140,10 @@ public class EditCommand implements CommandExecutor {
 
     private void showBanInfo(EditBan eb, CommandSender sender) {
         DateFormat shortTime = DateFormat.getDateTimeInstance();
-        sender.sendMessage(ChatColor.AQUA + banType(ban.type) );
+        sender.sendMessage(ChatColor.AQUA + banType(ban.type));
         sender.sendMessage(ChatColor.GOLD + " | " + ChatColor.WHITE + eb.name + ChatColor.YELLOW + " was banned by "
                 + ChatColor.WHITE + eb.admin + ChatColor.YELLOW);
-        sender.sendMessage(ChatColor.GOLD +" | at " + shortTime.format((new Date(eb.time * 1000))));
+        sender.sendMessage(ChatColor.GOLD + " | at " + shortTime.format((new Date(eb.time * 1000))));
         if (eb.endTime > 0)
             sender.sendMessage(ChatColor.GOLD + " | " + ChatColor.YELLOW + "Will be unbanned at "
                     + shortTime.format((new Date(eb.endTime * 1000))));
@@ -136,7 +156,8 @@ public class EditCommand implements CommandExecutor {
             return true;
         }
         if (!FigAdmin.validName(args[1])) {
-            sender.sendMessage(plugin.formatMessage(plugin.getConfig().getString("messages.badPlayerName", "bad player name")));
+            sender.sendMessage(plugin.formatMessage(plugin.getConfig().getString("messages.badPlayerName",
+                    "bad player name")));
             return true;
         }
         List<EditBan> bans = plugin.db.listRecords(args[1], true);
@@ -164,9 +185,8 @@ public class EditCommand implements CommandExecutor {
         }
         sender.sendMessage(ChatColor.GOLD + "Found " + bans.size() + " records for keyword " + args[1] + ":");
         for (EditBan ban : bans) {
-            sender.sendMessage(ChatColor.AQUA + banType(ban.type) + ChatColor.YELLOW + ban.id + 
-                    " "+ban.name +
-                    ": " + ChatColor.GREEN + ban.reason + ChatColor.YELLOW + " by " + ban.admin);
+            sender.sendMessage(ChatColor.AQUA + banType(ban.type) + ChatColor.YELLOW + ban.id + " " + ban.name + ": "
+                    + ChatColor.GREEN + ban.reason + ChatColor.YELLOW + " by " + ban.admin);
         }
         return true;
     }
@@ -343,7 +363,12 @@ public class EditCommand implements CommandExecutor {
                 break;
             }
         }
-        return plugin.db.deleteFullRecord(id);
+        boolean success = plugin.db.deleteFullRecord(id);
+        if (success)
+            sender.sendMessage(ChatColor.GREEN + "Deleted record " + id);
+        else
+            sender.sendMessage(ChatColor.RED + "Can't find record " + id);
+        return success;
     }
 
     private boolean cancel(CommandSender sender, String[] args) {
