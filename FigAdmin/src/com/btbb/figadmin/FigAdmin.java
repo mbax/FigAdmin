@@ -704,7 +704,7 @@ public class FigAdmin extends JavaPlugin {
         String IP = args[0];
         for (int i = 0; i < bannedPlayers.size(); i++) {
             EditBan b = bannedPlayers.get(i);
-            if (b.IP.equals(IP)) {
+            if (b.IP != null && b.IP.equals(IP)) {
                 db.deleteFullRecord(b.id);
                 bannedPlayers.remove(i);
                 sender.sendMessage(formatMessage(getConfig().getString("messages.unbanMsg").
