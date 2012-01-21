@@ -306,8 +306,8 @@ public class FigAdmin extends JavaPlugin {
 
         if (args.length > 1) {
             /*if(args[1].equalsIgnoreCase("-s")){
-            	broadcast = false;
-            	reason = combineSplit(2, args, " ");
+                broadcast = false;
+                reason = combineSplit(2, args, " ");
             }else*/
             reason = combineSplit(1, args, " ");
         } else {
@@ -330,10 +330,19 @@ public class FigAdmin extends JavaPlugin {
             log.log(Level.INFO, "[FigAdmin] " + formatMessage(kickerMsg));
 
             // Kick everyone on server
-            for (Player pl : this.getServer().getOnlinePlayers()) {
-                pl.kickPlayer(formatMessage(kickerMsg));
-                return true;
+            Player ps = null;
+            if (sender instanceof Player) {
+                ps = (Player)sender;
             }
+            for (Player pl : this.getServer().getOnlinePlayers()) {
+                if (ps != null && ps.getName().equalsIgnoreCase(pl.getName())) {
+                    // don't kick sender
+                    
+                } else {
+                    pl.kickPlayer(formatMessage(kickerMsg));
+                }
+            }
+            return true;
         } else if (!validName(p)) {
             sender.sendMessage(formatMessage(getConfig().getString("messages.badPlayerName", "bad player name")));
             return true;
@@ -401,8 +410,8 @@ public class FigAdmin extends JavaPlugin {
             boolean broadcast = true;
             if (args.length > 1) {
                 /*if(args[1].equalsIgnoreCase("-s")){
-                	broadcast = false;
-                	reason = combineSplit(2, args, " ");
+                    broadcast = false;
+                    reason = combineSplit(2, args, " ");
                 }else*/
                 reason = combineSplit(1, args, " ");
             }
@@ -486,8 +495,8 @@ public class FigAdmin extends JavaPlugin {
 
         if (args.length > 3) {
             /*if(args[1].equalsIgnoreCase("-s")){
-            	broadcast = false;
-            	reason = combineSplit(2, args, " ");
+                broadcast = false;
+                reason = combineSplit(2, args, " ");
             }else*/
             reason = combineSplit(3, args, " ");
         } else {
@@ -616,8 +625,8 @@ public class FigAdmin extends JavaPlugin {
 
         if (args.length > 1) {
             /*if(args[1].equalsIgnoreCase("-s")){
-            	broadcast = false;
-            	reason = combineSplit(2, args, " ");
+                broadcast = false;
+                reason = combineSplit(2, args, " ");
             }else*/
             reason = combineSplit(1, args, " ");
         } else {

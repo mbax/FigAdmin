@@ -86,9 +86,10 @@ public class FigAdminPlayerListener extends PlayerListener {
             EditBan e = plugin.bannedPlayers.get(i);
             if (e.IP != null && e.IP.equals(ip)) {
                 // Player is banned.
-                event.setJoinMessage("You are ban");
                 String kickerMsg = plugin.formatMessage(plugin.getConfig().getString(
                         "messages.LoginIPBan"));
+                
+                event.setJoinMessage(kickerMsg);
                 player.kickPlayer(kickerMsg);
 
                 if (!e.name.equals(player.getName().toLowerCase())) {
