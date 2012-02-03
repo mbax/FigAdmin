@@ -24,21 +24,24 @@ package com.btbb.figadmin;
 
 import java.util.Date;
 
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.entity.Player;
 
 import com.btbb.figadmin.FigAdmin;
 
 
-public class FigAdminPlayerListener extends PlayerListener {
+public class FigAdminPlayerListener implements Listener {
     FigAdmin plugin;
 
     public FigAdminPlayerListener(FigAdmin instance) {
         this.plugin = instance;
     }
 
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerLogin(PlayerLoginEvent event) {
         Player player = event.getPlayer();
         for (int i = 0; i < plugin.bannedPlayers.size(); i++) {
@@ -78,7 +81,7 @@ public class FigAdminPlayerListener extends PlayerListener {
         }
     }
 
-    @Override
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String ip = player.getAddress().getAddress().getHostAddress();

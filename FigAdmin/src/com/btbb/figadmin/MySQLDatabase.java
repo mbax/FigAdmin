@@ -74,6 +74,7 @@ public class MySQLDatabase extends Database {
         try {
             conn = getSQLConnection();
             DatabaseMetaData dbm = conn.getMetaData();
+            //  Table create if not it exists
             if (!dbm.getTables(null, null, table, null).next()) {
                 getLogger().log(Level.INFO, "[FigAdmin] Creating table " + table + ".");
                 ps = conn.prepareStatement("CREATE TABLE `" + table + "` ( \n" + "  `name` varchar(32) NOT NULL, \n"
@@ -86,6 +87,11 @@ public class MySQLDatabase extends Database {
                 if (!dbm.getTables(null, null, table, null).next())
                     throw new SQLException("Table " + table + " not found; tired to create and failed");
             }
+            // Clean up old temp bans
+            ps = conn.prepareStatement("DELETE FROM " + table
+                    + " WHERE (type = 0 OR type = 1) AND (temptime > 0) AND (temptime < ?)");
+            ps.setLong(1, System.currentTimeMillis() / 1000);
+            ps.execute();
         } catch (SQLException ex) {
             FigAdmin.log.log(Level.SEVERE, "[FigAdmin] Couldn't execute MySQL statement: ", ex);
             return false;

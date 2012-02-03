@@ -19,6 +19,7 @@ messages:
   banMsgVictim: '&eYou have been banned by &e%player%&f.&6 Reason: %reason%'
   banMsgBroadcast: '&e%victim% &6was banned by &e%player%&f.&6 Reason: &e%reason%'
   banDefaultReason: '&eBan Hammer has Spoken!'
+  banOffline: '&eWarning: &8Player &a%player%&8 has not been on this server before.'
   tempbanMsgVictim: 'You have been temp. banned by %player%. Reason: %reason%'
   tempbanMsgBroadcast: '&e%victim% &6was temp. banned by &e%player%&6. Reason: &e%reason%'
   LoginTempban: '&cYou are banned until &e%time%&c! Reason: &e%reason%'
