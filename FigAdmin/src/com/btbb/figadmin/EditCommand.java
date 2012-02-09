@@ -51,7 +51,7 @@ public class EditCommand implements CommandExecutor {
         this.plugin = plugin;
     }
 
-    private String banType(int num) {
+    private static String banType(int num) {
         switch (num) {
         case 0:
             return "Ban   ";
@@ -138,9 +138,9 @@ public class EditCommand implements CommandExecutor {
 
     }
 
-    private void showBanInfo(EditBan eb, CommandSender sender) {
+    public static void showBanInfo(EditBan eb, CommandSender sender) {
         DateFormat shortTime = DateFormat.getDateTimeInstance();
-        sender.sendMessage(ChatColor.AQUA + banType(ban.type));
+        sender.sendMessage(ChatColor.AQUA + banType(eb.type));
         sender.sendMessage(ChatColor.GOLD + " | " + ChatColor.WHITE + eb.name + ChatColor.YELLOW + " was banned by "
                 + ChatColor.WHITE + eb.admin + ChatColor.YELLOW);
         sender.sendMessage(ChatColor.GOLD + " | at " + shortTime.format((new Date(eb.time * 1000))));

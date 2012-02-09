@@ -259,7 +259,7 @@ public class FlatFileDatabase extends Database {
                 if (line.startsWith("#"))
                     continue;
 
-                if (!written && !line.startsWith("#")) {
+                if (!written) {
                     String[] data = line.split("\\|");
                     if (data.length > 7) {
                         if (Integer.parseInt(data[1]) == ban.id) {
@@ -300,8 +300,8 @@ public class FlatFileDatabase extends Database {
                     continue;
                 String[] data = line.split("\\|");
                 if (data.length > 7) {
-                    
-                    if ( (exact && data[0].equalsIgnoreCase(name)) || (!exact && data[0].contains(name))) {
+
+                    if ((exact && data[0].equalsIgnoreCase(name)) || (!exact && data[0].contains(name))) {
                         EditBan ban = EditBan.loadBan(data);
                         if (ban != null) {
                             bans.add(ban);
@@ -358,6 +358,59 @@ public class FlatFileDatabase extends Database {
             ex.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public int getWarnCount(String player) {
+        ArrayList<EditBan> records = listRecords(player, true);
+        int warns = 0;
+        for (EditBan e : records) {
+            if (e.type == EditBan.WARN)
+                warns++;
+        }
+        return warns;
+    }
+
+    @Override
+    public int clearWarnings(String player) {
+        int warns = 0;
+        try {
+            File tempFile = new File(banlist.getAbsolutePath() + ".tmp");
+
+            BufferedReader br = new BufferedReader(new FileReader(banlist));
+            PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
+
+            String line = null;
+
+            // Loops through the temporary file and deletes the player's
+            // warnings
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("#"))
+                    continue;
+
+                boolean skip = false;
+                EditBan b = EditBan.loadBan(line);
+                if (b != null) {
+                    if (b.name.equalsIgnoreCase(player) && b.type == EditBan.WARN) {
+                        skip = true;
+                        warns++;
+                    }
+                }
+                if (!skip)
+                    pw.println(line);
+                skip = false;
+                pw.flush();
+            }
+            br.close();
+            pw.close();
+
+            banlist.delete();
+            tempFile.renameTo(banlist);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return warns;
     }
 
 }

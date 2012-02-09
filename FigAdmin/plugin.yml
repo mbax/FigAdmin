@@ -1,6 +1,6 @@
 name: FigAdmin
 main: com.btbb.figadmin.FigAdmin
-version: 4.0.13
+version: 4.0.14
 website: http://www.bobtheblueberry.com
 author: Serge Humphrey
 description: >
@@ -39,6 +39,10 @@ commands:
   warn:
     description: Warn a player
     usage: /<command> player reason - Warn a player
+  clearwarnings:
+    description: Clears all warnings for given player 
+    usage: /<command> player 
+    aliases: clearplayer
   editban:
     description: Edit a ban
     usage: /<command> <list/search/load/id/save/show/reason/time/delete/cancel>

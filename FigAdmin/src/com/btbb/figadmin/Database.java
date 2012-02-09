@@ -62,5 +62,16 @@ public abstract class Database {
     public abstract ArrayList<EditBan> listRecords(String name, boolean exact);
     
     public abstract boolean saveFullRecord(EditBan ban);
+    
+    public abstract int getWarnCount(String player);
+    
+    /**
+     * Clears warnings from player
+     * 
+     * @param player player's exact name
+     * 
+     * @return How many warnings were deleted
+     */
+    public abstract int clearWarnings(String player);
 	
 }

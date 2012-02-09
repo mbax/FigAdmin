@@ -5,6 +5,9 @@ mysql-password: root
 mysql-table: banlist
 auto-complete: true
 ip-ban: false
+bans-to-banned-players: false
+auto-ban-on-warnings: -1
+auto-ban-time: '1 day'
 messages:
   banMsgFailed: '&cPlayer &e%victim% &cis already banned!'
   unbanMsg: '&aSuccessfully unbanned player &e%victim%&a!'
@@ -35,3 +38,5 @@ messages:
   playerNotBanned: '&aPlayer %player% is not banned.'
   ipBan: '&eIP banning is'
   noPermission: '&cYou don''t have permission to do this.'
+  warnDeleted: '&aAll %number% warnings cleared for player &e%player%&a.'
+  warnNone: '&cNo warnings found for player &e%player%&c!'
