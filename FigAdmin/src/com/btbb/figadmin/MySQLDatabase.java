@@ -277,11 +277,11 @@ public class MySQLDatabase extends Database {
         try {
             conn = getSQLConnection();
             ps = conn.prepareStatement("SELECT * FROM `" + mysqlTable + "` WHERE name "
-                    + ((exact) ? "= ?" : "LIKE %?%") + " ORDER BY time DESC LIMIT 10");
+                    + ((exact) ? "= ?" : "LIKE ?") + " ORDER BY time DESC LIMIT 10");
             if (exact) {
                 ps.setString(1, name);
             } else {
-                ps.setString(1, name);
+                ps.setString(1, "'%" + name + "%'");
             }
             rs = ps.executeQuery();
             ArrayList<EditBan> bans = new ArrayList<EditBan>();

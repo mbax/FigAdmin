@@ -141,6 +141,8 @@ public class FigAdmin extends JavaPlugin {
     }
 
     public String expandName(String Name) {
+        if (!autoComplete) 
+            return Name;
         if (Name.equals("*"))
             return Name;
         int m = 0;
@@ -344,9 +346,9 @@ public class FigAdmin extends JavaPlugin {
             reason = combineSplit(1, args, " ");
         } else {
             if (p.equals("*")) {
-                reason = getConfig().getString("kickGlobalDefaultReason", "Global Kick");
+                reason = getConfig().getString("messages.kickGlobalDefaultReason", "Global Kick");
             } else {
-                reason = getConfig().getString("kickDefaultReason", "Booted from server");
+                reason = getConfig().getString("messages.kickDefaultReason", "Booted from server");
             }
         }
 
