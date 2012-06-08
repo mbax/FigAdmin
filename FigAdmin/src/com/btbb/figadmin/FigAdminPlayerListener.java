@@ -81,25 +81,4 @@ public class FigAdminPlayerListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        String ip = player.getAddress().getAddress().getHostAddress();
-        for (int i = 0; i < plugin.bannedPlayers.size(); i++) {
-            EditBan e = plugin.bannedPlayers.get(i);
-            if (e.IP != null && e.IP.equals(ip)) {
-                // Player is banned.
-                String kickerMsg = plugin.formatMessage(plugin.getConfig().getString(
-                        "messages.LoginIPBan"));
-                
-                event.setJoinMessage(kickerMsg);
-                player.kickPlayer(kickerMsg);
-
-                if (!e.name.equals(player.getName().toLowerCase())) {
-                    plugin.db.updateAddress(player.getName(), ip);
-                }
-                return;
-            }
-        }
-    }
 }
